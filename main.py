@@ -10,33 +10,35 @@ pygame.init()
 # CHECK -   MAKE A PADDLE SHOT REPTILES WHICH THE OTHER PLAYER SHOULD AVOID
 #           ADD SOME RANDOMS, MAYBE TO THE ANGLE OF WICH THE BALL GOES
 
-WIDTH, HEIGHT = 900, 600
-WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("Pong")  # Visar "Pong" i fönstret
+WIDTH, HEIGHT = 900, 600 # FÖNSTRETS STORLEK
+WIN = pygame.display.set_mode((WIDTH, HEIGHT)) 
+pygame.display.set_caption("Pong by glennis")  # Visar "Pong" i fönstret
 
-FPS = 60  # Frames / second
+FPS = 60 
 
+# FÄRGER SOM ANVÄNDS
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 GREEN = (0, 255, 0)
 DARKBLUE = (120, 120, 120)
+RED = (150, 0, 0)
 
+# PADDLE & BALL STORLEK
 PADDLE_WIDTH, PADDLE_HEIGHT = 20, 100
 BALL_RADIUS = 7
 
+# SCORE VARIABELS
 SCORE_FONT = pygame.font.SysFont("comicsans", 50)
 WINNING_SCORE = 5
 
-# TILLÄGG
-
+# ------------------------- REPTILES ---------------------------
 BG = pygame.image.load("5920.jpg")
 BG = pygame.transform.scale(BG, (WIDTH, HEIGHT))
 
 REPTILES_WIDTH, REPTILES_HEIGHT = 15, 5
 
-
 class Reptile:
-    COLOR = WHITE
+    COLOR = RED
     VEL = 6
 
     def __init__(self, x, y, width, height, direction):
@@ -52,6 +54,7 @@ class Reptile:
     def move(self):
         self.x += self.VEL * self.direction
 
+# ----------------------------------------------------------------
 
 class Paddle:  # för att vi sak ha fler paddles
 
@@ -124,9 +127,13 @@ def draw(win, paddles, ball, left_score, right_score, left_reptiles, right_repti
 
     ball.draw(win)
 
+# ------------------------- REPTILES ---------------------------
+
     # REPTILES
     for reptile in left_reptiles + right_reptiles:
         reptile.draw(win)
+
+# -------------------------------------------------------------
 
     pygame.display.update()
 
@@ -173,7 +180,7 @@ def handle_paddle_movement(keys, left_paddle, right_paddle, left_reptiles, right
     if keys[pygame.K_DOWN] and right_paddle.y + right_paddle.VEL + right_paddle.height <= HEIGHT:
         right_paddle.move(up=False)
 
-    # TILLÄGG
+    # -------------------------REPTILES ---------------------------
 
     current_time = time.time()
     if keys[pygame.K_LCTRL] and current_time - left_last_shot > COOLDOWN:
@@ -186,6 +193,7 @@ def handle_paddle_movement(keys, left_paddle, right_paddle, left_reptiles, right
 
     return left_last_shot, right_last_shot
 
+    # --------------------------------------------------------------
 
 def main():
     run = True
@@ -198,12 +206,14 @@ def main():
     left_score = 0
     right_score = 0
 
-    # TILLÄGG
+    # ------------------------- REPTILES ---------------------------
     left_reptiles = []
     right_reptiles = []
     left_last_shot = 0
     right_last_shot = 0
-    COOLDOWN = 2  # Låt oss säga 2 sekunder
+    COOLDOWN = 3  # SÄTTS HÄR FÖR ATT DET INTE ÄR EN INNEBOENDE EGENSKAP HOS EN ENSKILD REPTIL
+    
+    # -------------------------REPTILES---------------------------
 
     while run:
         clock.tick(FPS)
@@ -225,6 +235,8 @@ def main():
             if reptile.x < 0 or reptile.x > WIDTH:
                 right_reptiles.remove(reptile)
 
+        # ------------------------- REPTILES ---------------------------
+
         # Kontrollera kollisioner mellan reptiler och paddlar
         for reptile in list(left_reptiles):
             if right_paddle.x < reptile.x + reptile.width and right_paddle.x + right_paddle.width > reptile.x and \
@@ -237,6 +249,8 @@ def main():
                     left_paddle.y < reptile.y + reptile.height and left_paddle.y + left_paddle.height > reptile.y:
                 right_score += 1
                 right_reptiles.remove(reptile)
+                
+        # -----------------------------------------------------------
 
         # Hantera poäng för bollen
         if ball.x < 0:
@@ -246,16 +260,21 @@ def main():
             left_score += 1
             ball.reset()
 
+        # Rita allt - FLYTTAD HIT FÖR ATT VISA SCORE INNAN ALLT RESETTAS VID VINST
+        draw(WIN, [left_paddle, right_paddle], ball, left_score, right_score, left_reptiles, right_reptiles)
+
         # Kontrollera om någon har vunnit
         if left_score >= WINNING_SCORE or right_score >= WINNING_SCORE:
             if left_score > right_score:
-                win_text = "Left Player Won!"
+                win_text = "Left Player Won!" # Sätter samma variabelnamn
             else:
                 win_text = "Right Player Won!"
 
             text = SCORE_FONT.render(win_text, 1, GREEN)
             WIN.blit(text, (WIDTH // 2 - text.get_width() // 2, HEIGHT // 2 - text.get_height() // 2))
             pygame.display.update()
+            
+        # Resettar allt för ny omgång    
             pygame.time.delay(5000)
             ball.reset()
             left_paddle.reset()
@@ -263,8 +282,6 @@ def main():
             left_score = 0
             right_score = 0
 
-        # Rita allt
-        draw(WIN, [left_paddle, right_paddle], ball, left_score, right_score, left_reptiles, right_reptiles)
 
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
