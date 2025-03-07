@@ -48,7 +48,7 @@ class Ball:
     def draw(self, win):
         pygame.draw.circle(win, self.COLOR, (self.x, self.y), self.radius)
         
-    def move():
+    def move(self):
         self.x += self.x_vel
         self.y += self.y_vel
         
@@ -69,7 +69,28 @@ def draw(win, paddles, ball):
     ball.draw(win)    
     pygame.display.update()
     
-
+def handle_collision(ball, left_paddle, right_paddle):
+    
+    # CEILING
+    if ball.y + ball.radius >= HEIGHT: # ta med radius för att den ska ta "kanten" på bollen och inte centrum
+        ball.y_vel *= -1 # reverse direction
+    elif ball.y - ball.radius <= 0:
+        ball.y_vel *= -1
+    
+    # PADDLES
+    if ball.x_vel < 0: # Om den åker vänster
+        if ball.y >= left_paddle.y and ball.y <= left_paddle.y + left_paddle.height:
+            if ball.x - ball.radius <= left_paddle.x + left_paddle.width:
+                ball.x_vel *= -1 # byt direction
+    else: #right paddle  
+        if ball.y >= right_paddle.y and ball.y <= right_paddle.y + right_paddle.height:  
+            if ball.x + ball.radius >= right_paddle.x:
+                ball.x_vel *= -1   
+                   
+        
+        
+        
+        
 
 def handle_paddle_movement(keys, left_paddle, right_paddle):
     if keys[pygame.K_w] and left_paddle.y - left_paddle.VEL >= 0:
@@ -101,6 +122,9 @@ def main():
                 
         keys = pygame.key.get_pressed()
         handle_paddle_movement(keys, left_paddle, right_paddle)
+        handle_collision(ball, left_paddle, right_paddle)
+        
+        ball.move()
     
 
     pygame.quit()
