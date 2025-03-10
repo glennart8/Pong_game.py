@@ -66,6 +66,8 @@ class Paddle:  # för att vi sak ha fler paddles
         self.y = self.original_y = y
         self.width = width
         self.height = height
+        self.original_width = width  # Spara originalbredden för att kunna resetta
+        self.original_height = height # Spara originalhöjden för att kunna resetta
 
     def draw(self, win):
         pygame.draw.rect(win, self.COLOR, (self.x, self.y, self.width, self.height))
@@ -79,6 +81,7 @@ class Paddle:  # för att vi sak ha fler paddles
     def reset(self):
         self.x = self.original_x
         self.y = self.original_y
+        self.width = self.original_width   # Återställ originalbredd och höjd
 
 
 class Ball:
@@ -89,8 +92,7 @@ class Ball:
         self.x = self.original_x = x  # Skapar en separat variabel för att kunna reseta bollen
         self.y = self.original_y = y
         self.radius = radius
-        self.x_vel = self.MAX_VEL
-        self.x_vel = self.MAX_VEL * x_vel_direction  # Lägg till x_vel_direction
+        self.x_vel = self.MAX_VEL * x_vel_direction  # x_vel_direction för att hålla reda på vilket håll bollen åker, 1 eller -1
         self.y_vel = 0
         self.COLOR = color  # La till color
 
@@ -223,10 +225,12 @@ def main():
     # TIMER
     start_time = time.time()
     no_score_start_time = time.time()  # Tid sedan senaste mål - SÄTTS TILL NU
-    BALL_COOLDOWN = 10  # Tid innan en ny boll skapas
+    BALL_COOLDOWN = 20  # Tid innan en ny boll skapas
     MAX_BALLS = 2  # Maximalt antal bollar
     
+    # För att skicka tillbaka bollen till den som gjorde mål när ny boll kastas in
     last_ball_direction = 1  # 1 för höger, -1 för vänster
+    
     # -------------------------REPTILES---------------------------
 
     while run:
@@ -272,7 +276,7 @@ def main():
             if ball.x < 0 or ball.x > WIDTH:
                 if ball.x < 0:
                     right_score += 1
-                    last_ball_direction = 1 # Bollen gick till vänster, så nästa boll ska gå höger
+                    last_ball_direction = 1 # Bollen gick till vänster, så nästa boll ska gå höger (1 är höger)
                 else:
                     left_score += 1
                     last_ball_direction = -1
@@ -289,6 +293,16 @@ def main():
         if time.time() - no_score_start_time >= BALL_COOLDOWN and len(balls) < MAX_BALLS:
             balls.append(Ball(WIDTH // 2, HEIGHT // 2, BALL_RADIUS))
             no_score_start_time = time.time() # DENNA HADE JAG GLÖMT, MÅSTE NOLLSTÄLLA TIDEN FÖR ATT INTE IFSATSEN ALLTID SKA VARA SANN
+            
+        # Kontrollera om någon har 4 poäng, gör isåfall paddeln mindre
+        if left_score == 4:
+            left_paddle.width = 20
+            left_paddle.height = 50
+            
+        elif right_score == 4:
+            right_paddle.width = 20
+            right_paddle.height = 50
+               
 
         # Rita allt
         draw(WIN, [left_paddle, right_paddle], balls, left_score, right_score, left_reptiles, right_reptiles, int(current_time - start_time))
