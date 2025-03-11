@@ -1,5 +1,6 @@
 import time
 import pygame
+import random as random
 
 # Så fort en boll försvinner, kommer en ny. Detta ska inte ske. 
 # 1. Endast två bollar ska tillåtas
@@ -96,6 +97,7 @@ class Ball:
         self.x_vel = self.MAX_VEL * x_vel_direction  # x_vel_direction för att hålla reda på vilket håll bollen åker, 1 eller -1
         self.y_vel = 0
         self.COLOR = color  # La till color
+        self.increased_speed = False  # Ny variabel för att hålla reda på om hastigheten är ökad
 
     def draw(self, win):
         pygame.draw.circle(win, self.COLOR, (self.x, self.y), self.radius)
@@ -113,9 +115,15 @@ class Ball:
     def increase_velocity(self):
         self.x_vel += 1
         
-    def ball_change_angle(): # Funktion som randomiserar vinkeln på hur bollen kommer fädras (ibland)
-        
-        pass
+    def ball_change_speed(self): 
+        if not self.increased_speed: # Kontrollera om hastigheten redan är ökad
+            self.MAX_VEL = 10
+            print("SPEED UP!")
+            if self.x_vel > 0: # Behåll riktningen
+                self.x_vel = self.MAX_VEL
+            else:
+                self.x_vel = -self.MAX_VEL
+            self.increased_speed = True # Markera att hastigheten är ökad
 
 
 def draw(win, paddles, balls, left_score, right_score, left_reptiles, right_reptiles, remaining_time):
@@ -171,6 +179,11 @@ def handle_collision(ball, left_paddle, right_paddle):
                 reduction_factor = (left_paddle.height / 2) / ball.MAX_VEL
                 y_vel = difference_in_y / reduction_factor
                 ball.y_vel = -1 * y_vel
+                
+                #RANDOM
+                if random.random() < 0.3:  # 30% chans att ändra vinkel
+                    ball.ball_change_speed()
+                    
 
     else:  # right paddle
         if right_paddle.y <= ball.y <= right_paddle.y + right_paddle.height:
@@ -182,7 +195,10 @@ def handle_collision(ball, left_paddle, right_paddle):
                 reduction_factor = (right_paddle.height / 2) / ball.MAX_VEL
                 y_vel = difference_in_y / reduction_factor
                 ball.y_vel = -1 * y_vel
-
+                
+                #RANDOM
+                if random.random() < 0.2:  # 20% chans att ändra vinkel
+                    ball.ball_change_speed()
 
 def handle_paddle_movement(keys, left_paddle, right_paddle, left_reptiles, right_reptiles, left_last_shot, right_last_shot, COOLDOWN):
     if keys[pygame.K_w] and left_paddle.y - left_paddle.VEL >= 0:
