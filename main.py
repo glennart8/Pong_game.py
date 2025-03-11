@@ -35,16 +35,17 @@ BG = pygame.transform.scale(BG, (WIDTH, HEIGHT))
 
 REPTILES_WIDTH, REPTILES_HEIGHT = 15, 5
 
-
 class Reptile:
     COLOR = WHITE
     VEL = 6
+    WIDTH = REPTILES_WIDTH  # Använd klassvariabeln direkt i stället
+    HEIGHT = REPTILES_HEIGHT
 
-    def __init__(self, x, y, width, height, direction):
+    def __init__(self, x, y, direction): # Lägger till standardvärden här för att slippa så många inparametrar vid anropet
         self.x = x
         self.y = y
-        self.width = width
-        self.height = height
+        self.width = self.WIDTH
+        self.height = self.HEIGHT
         self.direction = direction
 
     def draw(self, win):
@@ -111,6 +112,10 @@ class Ball:
 
     def increase_velocity(self):
         self.x_vel += 1
+        
+    def ball_change_angle(): # Funktion som randomiserar vinkeln på hur bollen kommer fädras (ibland)
+        
+        pass
 
 
 def draw(win, paddles, balls, left_score, right_score, left_reptiles, right_reptiles, remaining_time):
@@ -149,10 +154,10 @@ def draw(win, paddles, balls, left_score, right_score, left_reptiles, right_rept
 
 
 def handle_collision(ball, left_paddle, right_paddle):
-    # CEILING
+    # CEILING & BOTTOM
     if ball.y + ball.radius >= HEIGHT:  # ta med radius för att den ska ta "kanten" på bollen och inte centrum
-        ball.y_vel *= -1  # reverse direction
-    elif ball.y - ball.radius <= 0:
+        ball.y_vel *= -1  # reverse direction, åker neråt i samma vinkel
+    elif ball.y - ball.radius <= 0: 
         ball.y_vel *= -1
 
     # PADDLES
@@ -184,21 +189,21 @@ def handle_paddle_movement(keys, left_paddle, right_paddle, left_reptiles, right
         left_paddle.move(up=True)
     if keys[pygame.K_s] and left_paddle.y + left_paddle.VEL + left_paddle.height <= HEIGHT:
         left_paddle.move(up=False)
-
+        
     if keys[pygame.K_UP] and right_paddle.y - right_paddle.VEL >= 0:
         right_paddle.move(up=True)
     if keys[pygame.K_DOWN] and right_paddle.y + right_paddle.VEL + right_paddle.height <= HEIGHT:
         right_paddle.move(up=False)
 
-    # -------------------------REPTILES ---------------------------
 
+    # -------------------------REPTILES ---------------------------
     current_time = time.time()
     if keys[pygame.K_LCTRL] and current_time - left_last_shot > COOLDOWN:
-        left_reptiles.append(Reptile(left_paddle.x + left_paddle.width, left_paddle.y + left_paddle.height // 2, REPTILES_WIDTH, REPTILES_HEIGHT, 1))
+        left_reptiles.append(Reptile(left_paddle.x + left_paddle.width, left_paddle.y + left_paddle.height // 2, 1))  # 1 för att skjuta till höger
         left_last_shot = current_time
 
     if keys[pygame.K_RCTRL] and current_time - right_last_shot > COOLDOWN:
-        right_reptiles.append(Reptile(right_paddle.x - REPTILES_WIDTH, right_paddle.y + right_paddle.height // 2, REPTILES_WIDTH, REPTILES_HEIGHT, -1))
+        right_reptiles.append(Reptile(right_paddle.x + right_paddle.width, right_paddle.y + right_paddle.height // 2, -1)) # -1 för vänster
         right_last_shot = current_time
 
     return left_last_shot, right_last_shot
@@ -231,7 +236,6 @@ def main():
     # För att skicka tillbaka bollen till den som gjorde mål när ny boll kastas in
     last_ball_direction = 1  # 1 för höger, -1 för vänster
     
-    # -------------------------REPTILES---------------------------
 
     while run:
         clock.tick(60)
@@ -239,6 +243,8 @@ def main():
         keys = pygame.key.get_pressed()
         left_last_shot, right_last_shot = handle_paddle_movement(keys, left_paddle, right_paddle, left_reptiles, right_reptiles, left_last_shot, right_last_shot, COOLDOWN)
 
+
+        # ------------------------- REPTILES ---------------------------
         # Flytta och hantera borttagning av reptiler
         for reptile in list(left_reptiles):
             reptile.move()
@@ -248,22 +254,26 @@ def main():
         for reptile in list(right_reptiles):
             reptile.move()
             if reptile.x < 0 or reptile.x > WIDTH:
-                right_reptiles.remove(reptile)
-
-        # ------------------------- REPTILES ---------------------------
-
+                right_reptiles.remove(reptile)                
+                
         # Kontrollera kollisioner mellan reptiler och paddlar
         for reptile in list(left_reptiles):
-            if right_paddle.x < reptile.x + reptile.width and right_paddle.x + right_paddle.width > reptile.x and \
-                    right_paddle.y < reptile.y + reptile.height and right_paddle.y + reptile.height > reptile.y:
+            # Använd rektangelkollision istället för punktkollision. Detta är MYCKET mer reliable
+            reptile_rect = pygame.Rect(reptile.x, reptile.y, reptile.width, reptile.height)
+            paddle_rect = pygame.Rect(right_paddle.x, right_paddle.y, right_paddle.width, right_paddle.height)
+            if reptile_rect.colliderect(paddle_rect): # inbyggd funktion som ser om något collidar
                 left_score += 1
                 left_reptiles.remove(reptile)
 
         for reptile in list(right_reptiles):
-            if left_paddle.x < reptile.x + reptile.width and left_paddle.x + left_paddle.width > reptile.x and \
-                    left_paddle.y < reptile.y + reptile.height and left_paddle.y + reptile.height > reptile.y:
+            # Samma rektangel kollision fast ombytt
+            reptile_rect = pygame.Rect(reptile.x, reptile.y, reptile.width, reptile.height)
+            paddle_rect = pygame.Rect(left_paddle.x, left_paddle.y, left_paddle.width, left_paddle.height)
+            if reptile_rect.colliderect(paddle_rect):
                 right_score += 1
                 right_reptiles.remove(reptile)
+
+
 
         # -----------------------------------------------------------
         current_time = time.time()
