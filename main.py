@@ -2,11 +2,14 @@ import time
 import pygame
 import random as random
 
-# Så fort en boll försvinner, kommer en ny. Detta ska inte ske. 
-# 1. Endast två bollar ska tillåtas
-# 2. 
-
 pygame.init()
+
+pygame.mixer.init()    
+
+# SOUNDS
+pygame.mixer.music.load("dark-dub-techno-somewhere-we-got-lost-no-copyright-music-144827.mp3")
+pygame.mixer.music.play(loops=-1, start=0.0)
+hit_sound = pygame.mixer.Sound("Sounds/mixkit-cooking-bell-ding-1791.wav")
 
 WIDTH, HEIGHT = 900, 600  # FÖNSTRETS STORLEK
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -56,12 +59,10 @@ class Reptile:
         self.x += self.VEL * self.direction
 
 
-# ----------------------------------------------------------------
-
 class Paddle:  # för att vi sak ha fler paddles
 
     COLOR = WHITE  # Klassattribut för ALLA paddles
-    VEL = 4
+    VEL = 6
 
     def __init__(self, x, y, width, height):
         self.x = self.original_x = x
@@ -115,10 +116,14 @@ class Ball:
     def increase_velocity(self):
         self.x_vel += 1
         
-    def ball_change_speed(self): 
+    def crazy_ball(self): 
         if not self.increased_speed: # Kontrollera om hastigheten redan är ökad
+            # Byt färg på bollen, öka hastighet och storlek
+            self.COLOR = RED
+            self.radius = 10
             self.MAX_VEL = 10
             print("SPEED UP!")
+            
             if self.x_vel > 0: # Behåll riktningen
                 self.x_vel = self.MAX_VEL
             else:
@@ -173,6 +178,8 @@ def handle_collision(ball, left_paddle, right_paddle):
         if left_paddle.y <= ball.y <= left_paddle.y + left_paddle.height:
             if ball.x - ball.radius <= left_paddle.x + left_paddle.width:
                 ball.x_vel *= -1  # byt direction
+                # Spela upp ljus effekt
+                hit_sound.play()
 
                 middle_y = left_paddle.y + left_paddle.height / 2  # paddels mitt
                 difference_in_y = middle_y - ball.y
@@ -181,14 +188,16 @@ def handle_collision(ball, left_paddle, right_paddle):
                 ball.y_vel = -1 * y_vel
                 
                 #RANDOM
-                if random.random() < 0.3:  # 30% chans att ändra vinkel
-                    ball.ball_change_speed()
+                if random.random() < 0.1:  # 10% chans att ändra vinkel
+                    ball.crazy_ball()
                     
 
     else:  # right paddle
         if right_paddle.y <= ball.y <= right_paddle.y + right_paddle.height:
             if ball.x + ball.radius >= right_paddle.x:
                 ball.x_vel *= -1
+                # Spela upp ljus effekt
+                hit_sound.play()
 
                 middle_y = right_paddle.y + right_paddle.height / 2  # paddels mitt
                 difference_in_y = middle_y - ball.y
@@ -197,8 +206,8 @@ def handle_collision(ball, left_paddle, right_paddle):
                 ball.y_vel = -1 * y_vel
                 
                 #RANDOM
-                if random.random() < 0.2:  # 20% chans att ändra vinkel
-                    ball.ball_change_speed()
+                if random.random() < 0.1:  # 10% chans att ändra vinkel
+                    ball.crazy_ball()
 
 def handle_paddle_movement(keys, left_paddle, right_paddle, left_reptiles, right_reptiles, left_last_shot, right_last_shot, COOLDOWN):
     if keys[pygame.K_w] and left_paddle.y - left_paddle.VEL >= 0:
@@ -329,7 +338,6 @@ def main():
             right_paddle.width = 20
             right_paddle.height = 50
                
-
         # Rita allt
         draw(WIN, [left_paddle, right_paddle], balls, left_score, right_score, left_reptiles, right_reptiles, int(current_time - start_time))
 
@@ -360,6 +368,8 @@ def main():
                 break
 
         pygame.display.update()
+
+    pygame.mixer.music.stop()
 
     pygame.quit()
 
