@@ -11,24 +11,19 @@ pygame.mixer.music.load("dark-dub-techno-somewhere-we-got-lost-no-copyright-musi
 pygame.mixer.music.play(loops=-1, start=0.0)
 hit_sound = pygame.mixer.Sound("Sounds/mixkit-cooking-bell-ding-1791.wav")
 hit_sound.set_volume(0.5)
-
 super_ball_sound = pygame.mixer.Sound("Sounds/mixkit-fast-rocket-whoosh-1714.wav")
-
 extra_ball_sound = pygame.mixer.Sound("Sounds/mixkit-fast-small-sweep-transition-166.wav")
 extra_ball_sound.set_volume(4.0)
-
 point_sound = pygame.mixer.Sound("Sounds/mixkit-horror-bell-cartoon-transition-598.wav")
 point_sound.set_volume(0.2)
-
 reptile_shot_sound = pygame.mixer.Sound("Sounds/mixkit-short-laser-gun-shot-1670.wav")
 reptile_boom = pygame.mixer.Sound("Sounds/mixkit-explosion-hit-1704.wav")
 reptile_boom.set_volume(0.7)
-
-small_paddle_sound = pygame.mixer.Sound("Sounds/mixkit-dagger-woosh-1487.wav")
+small_paddle_sound = pygame.mixer.Sound("Sounds/mixkit-dagger-woosh-1487.wav") # Används inte än
 
 WIDTH, HEIGHT = 900, 600  # FÖNSTRETS STORLEK
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
-pygame.display.set_caption("PONG by glennis")  # Visar "Pong" i fönstret
+pygame.display.set_caption("PONG by glennart (2 player)")  # Visar "Pong" i fönstret
 
 FPS = 60
 
