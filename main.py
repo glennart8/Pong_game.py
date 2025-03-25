@@ -10,6 +10,21 @@ pygame.mixer.init()
 pygame.mixer.music.load("dark-dub-techno-somewhere-we-got-lost-no-copyright-music-144827.mp3")
 pygame.mixer.music.play(loops=-1, start=0.0)
 hit_sound = pygame.mixer.Sound("Sounds/mixkit-cooking-bell-ding-1791.wav")
+hit_sound.set_volume(0.5)
+
+super_ball_sound = pygame.mixer.Sound("Sounds/mixkit-fast-rocket-whoosh-1714.wav")
+
+extra_ball_sound = pygame.mixer.Sound("Sounds/mixkit-fast-small-sweep-transition-166.wav")
+extra_ball_sound.set_volume(4.0)
+
+point_sound = pygame.mixer.Sound("Sounds/mixkit-horror-bell-cartoon-transition-598.wav")
+point_sound.set_volume(0.2)
+
+reptile_shot_sound = pygame.mixer.Sound("Sounds/mixkit-short-laser-gun-shot-1670.wav")
+reptile_boom = pygame.mixer.Sound("Sounds/mixkit-explosion-hit-1704.wav")
+reptile_boom.set_volume(0.7)
+
+small_paddle_sound = pygame.mixer.Sound("Sounds/mixkit-dagger-woosh-1487.wav")
 
 WIDTH, HEIGHT = 900, 600  # FÖNSTRETS STORLEK
 WIN = pygame.display.set_mode((WIDTH, HEIGHT))
@@ -118,6 +133,7 @@ class Ball:
         
     def crazy_ball(self): 
         if not self.increased_speed: # Kontrollera om hastigheten redan är ökad
+            super_ball_sound.play()
             # Byt färg på bollen, öka hastighet och storlek
             self.COLOR = RED
             self.radius = 10
@@ -226,10 +242,12 @@ def handle_paddle_movement(keys, left_paddle, right_paddle, left_reptiles, right
     if keys[pygame.K_LCTRL] and current_time - left_last_shot > COOLDOWN:
         left_reptiles.append(Reptile(left_paddle.x + left_paddle.width, left_paddle.y + left_paddle.height // 2, 1))  # 1 för att skjuta till höger
         left_last_shot = current_time
+        reptile_shot_sound.play()
 
     if keys[pygame.K_RCTRL] and current_time - right_last_shot > COOLDOWN:
         right_reptiles.append(Reptile(right_paddle.x + right_paddle.width, right_paddle.y + right_paddle.height // 2, -1)) # -1 för vänster
         right_last_shot = current_time
+        reptile_shot_sound.play()
 
     return left_last_shot, right_last_shot
 # --------------------------------------------------------------
@@ -289,6 +307,8 @@ def main():
             if reptile_rect.colliderect(paddle_rect): # inbyggd funktion som ser om något collidar
                 left_score += 1
                 left_reptiles.remove(reptile)
+                reptile_boom.play()
+                
 
         for reptile in list(right_reptiles):
             # Samma rektangel kollision fast ombytt
@@ -297,7 +317,7 @@ def main():
             if reptile_rect.colliderect(paddle_rect):
                 right_score += 1
                 right_reptiles.remove(reptile)
-
+                reptile_boom.play()
 
 
         # -----------------------------------------------------------
@@ -312,9 +332,11 @@ def main():
                 if ball.x < 0:
                     right_score += 1
                     last_ball_direction = 1 # Bollen gick till vänster, så nästa boll ska gå höger (1 är höger)
+                    point_sound.play()
                 else:
                     left_score += 1
                     last_ball_direction = -1
+                    point_sound.play()
 
                 balls.remove(ball)
 
@@ -328,6 +350,7 @@ def main():
         if time.time() - no_score_start_time >= BALL_COOLDOWN and len(balls) < MAX_BALLS:
             balls.append(Ball(WIDTH // 2, HEIGHT // 2, BALL_RADIUS))
             no_score_start_time = time.time() # DENNA HADE JAG GLÖMT, MÅSTE NOLLSTÄLLA TIDEN FÖR ATT INTE IFSATSEN ALLTID SKA VARA SANN
+            extra_ball_sound.play()
             
         # Kontrollera om någon har 4 poäng, gör isåfall paddeln mindre
         if left_score == 4:
@@ -337,7 +360,7 @@ def main():
         elif right_score == 4:
             right_paddle.width = 20
             right_paddle.height = 50
-               
+                   
         # Rita allt
         draw(WIN, [left_paddle, right_paddle], balls, left_score, right_score, left_reptiles, right_reptiles, int(current_time - start_time))
 
